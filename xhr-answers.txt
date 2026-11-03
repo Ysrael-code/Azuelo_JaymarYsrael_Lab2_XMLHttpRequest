@@ -1,0 +1,64 @@
+TASK 3: GUIDE QUESTIONS
+
+1. What is the difference between readyState and status in XMLHttpRequest?
+
+readyState shows the stage of the request, or how far the request has progressed. status is the HTTP code from the server, which tells whether the request succeeded.
+
+readyState values:
+  0 - UNSENT (object created, open() not yet called)
+  1 - OPENED (open() has been called)
+  2 - HEADERS_RECEIVED (send() called, headers received)
+  3 - LOADING (response body is being downloaded)
+  4 - DONE (operation complete)
+
+status examples:
+  200 - OK
+  404 - Not Found
+  500 - Internal Server Error
+  0   - network failure
+
+readyState only says the request is finished, not that it worked. A request can reach readyState 4 with a 404 or 500 status. That is why both are checked together:
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        console.log(xhr.responseText);
+      } else {
+        console.log("Error: " + xhr.status);
+      }
+    }
+  };
+
+Note: onreadystatechange fires on every readyState change, which is why the readyState === 4 check is needed.
+
+
+2. How can you make the request asynchronous?
+
+Pass true as the third parameter of open():
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "data.php", true);   // true = asynchronous
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      document.getElementById("result").innerHTML = xhr.responseText;
+    }
+  };
+  xhr.onerror = function () {
+    console.log("Network error");
+  };
+
+  xhr.send();
+
+With true, send() returns immediately. The browser keeps running other code, and the callback (onreadystatechange or onload) handles the response when it arrives. With false, the script is blocked until the server replies. Asynchronous is also the default if the parameter is omitted.
+
+
+3. Why is asynchronous communication recommended for web applications?
+
+  1. The page stays responsive. The user can keep clicking, scrolling, and typing while the request is in progress. A synchronous request freezes the browser.
+  2. No full page reload. Only the part of the page that needs new data is updated, which saves bandwidth and time.
+  3. Better user experience. Features like live search, form validation, and auto-refreshing content run smoothly in the background.
+  4. Requests run in parallel. Several requests can be in progress at once instead of waiting in line.
+  5. It is the standard. Synchronous XHR on the main thread is deprecated in browsers because it harms usability.
+
+Summary: Asynchronous communication lets the page keep working while waiting for the server, and that is the basis of AJAX.
